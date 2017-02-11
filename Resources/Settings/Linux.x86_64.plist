@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EFFECTIVE_PLATFORM_NAME</key>
+	<string>-linux.x86_64</string>
+	<key>TARGET_FLAGS</key>
+	<string>-target x86_64-pc-linux-gnu -ccc-gcc-name x86_64-pc-linux -Wno-unused-command-line-argument</string>
+	<key>TARGET_CFLAGS</key>
+	<string>-fno-implicit-module-maps -fPIC -fobjc-nonfragile-abi -fobjc-runtime=gnustep-1.8 -D_GNU_SOURCE -D__LITTLE_ENDIAN__ -DGCC_RUNTIME_3</string>
+	<key>TARGET_LDFLAGS</key>
+	<string>-Wl,-Bdynamic -Wl,--as-needed -Wl,-lgcc_s</string>
+	<key>TARGET_ISYSTEM</key>
+	<string>-isystem $(SDK_DIR)/usr/include/ -isystem $(SDK_DIR)/usr/include/x86_64-linux-gnu -isystem $(SDK_DIR)/usr/local/include</string>
+	<key>TARGET_SYSLIB</key>
+	<string>$(SDK_DIR)/lib/ $(SDK_DIR)/lib/x86_64-linux-gnu/ $(SDK_DIR)/usr/lib/ $(SDK_DIR)/usr/lib/x86_64-linux-gnu/ $(SDK_DIR)/usr/local/lib/</string>
+	<key>TARGET_RPATH_LINK</key>
+	<string>-Wl,-rpath-link -Wl,$(SDK_DIR)/lib/ -Wl,-rpath-link -Wl,$(SDK_DIR)/lib/x86_64-linux-gnu/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/lib/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/lib/x86_64-linux-gnu/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/local/lib/</string>
+	<key>SHARED_OBJECT_LDFLAGS</key>
+	<string>-Wl,-Bshareable -Wl,--no-omagic -Wl,--no-undefined</string>
+	<key>SHARED_OBJECT_EXECUTABLE_PREFIX</key>
+	<string>lib</string>
+	<key>SHARED_OBJECT_EXECUTABLE_SUFFIX</key>
+	<string>.so</string>
+</dict>
+</plist>

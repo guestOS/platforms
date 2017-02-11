@@ -1,0 +1,49 @@
+module OS
+    def OS.windows?
+        (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.darwin?
+        (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def OS.unix?
+        !OS.windows?
+    end
+
+    def OS.linux?
+        OS.unix? and not OS.mac?  # todo: use Vagrant::Util::Platform.platform
+    end
+end
+
+
+Vagrant.configure("2") do |config|
+    config.vm.define "guestOS.Windows.7.i386" do |config|
+        config.vm.box = "windows7"
+        config.vm.box_url = "http://aka.ms/vagrant-win7-ie11"
+    end
+
+    config_name = "guestOS.Ubuntu.16.04.x86_64"
+    config.vm.define config_name do |config|
+        config.vm.box = "boxcutter/ubuntu1604-desktop"  # Ubuntu 16.04
+        config.vm.provider "virtualbox" do |vb|
+            vb.gui = ENV['guestOS.vm.headless'] ? false : true  # Display the VirtualBox GUI when booting the machine
+            vb.memory = "2048"
+            vb_audio = OS.darwin? ? "coreaudio" : "dsound"
+            vb.customize ['modifyvm', :id, '--audio', vb_audio, '--audiocontroller', 'ac97']
+            vb.customize ['modifyvm', :id, '--clipboard', 'bidirectional']
+            vb.customize ['modifyvm', :id, '--draganddrop', 'bidirectional']
+            vb.customize ['setextradata', :id, 'GUI/HiDPI/UnscaledOutput', '1']
+        end
+
+        config.vm.provision "shell", inline: 'apt-get update'
+        config.vm.provision "shell", inline: 'apt-get install -y libc++-dev'  # todo: is it really necessary?
+        config.vm.provision "shell", inline: 'apt-get install -y libdispatch-dev'
+        config.vm.provision "shell", inline: 'apt-get install -y cmake'
+        config.vm.provision "shell", path: "Scripts/install_libobjc2.sh"
+
+        config.vm.provision "shell", inline: 'apt-get install -y mesa-common-dev'
+        config.vm.provision "shell", inline: 'apt-get install -y libfreetype6-dev libfontconfig1-dev libcairo2-dev'
+        config.vm.provision "shell", inline: 'apt-get install -y libssl-dev libhunspell-dev'
+    end
+end

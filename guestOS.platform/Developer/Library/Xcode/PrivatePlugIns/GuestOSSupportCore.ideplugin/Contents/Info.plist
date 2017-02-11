@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.apple.GuestOSSupportCore.${OSNAME}</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>GuestOSSupportCore.${OSNAME}</string>
+	<key>CFBundlePackageType</key>
+	<string>BNDL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>MacOSX</string>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	<key>DVTPlugInCompatibilityUUIDs</key>
+	<array>
+		<string>E0A62D1F-3C18-4D74-BFE5-A4167D643966</string>
+		<string>ACA8656B-FEA8-4B6D-8E4A-93F4C95C362C</string>
+		<string>8D080965-EABB-4445-AAB3-CDAC8EE4FFF8</string>
+	</array>
+	<key>DVTPlugInHostRequirements</key>
+	<array>
+		<string>build-system</string>
+	</array>
+</dict>
+</plist>

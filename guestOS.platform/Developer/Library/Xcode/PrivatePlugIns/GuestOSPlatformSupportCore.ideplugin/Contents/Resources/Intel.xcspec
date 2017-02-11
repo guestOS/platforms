@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<array>
+	<dict>
+		<key>ArchitectureSetting</key>
+		<string>ARCHS_STANDARD</string>
+		<key>Description</key>
+		<string>Standard architectures</string>
+		<key>Identifier</key>
+		<string>Standard</string>
+		<key>ListInEnum</key>
+		<string>YES</string>
+		<key>Name</key>
+		<string>Standard architectures</string>
+		<key>RealArchitectures</key>
+		<array>
+			<string>${OSARCH}</string>
+		</array>
+		<key>SortNumber</key>
+		<string>1</string>
+		<key>Type</key>
+		<string>Architecture</string>
+	</dict>
+	<dict>
+		<key>ByteOrder</key>
+		<string>little</string>
+		<key>Identifier</key>
+		<string>i386</string>
+		<key>PerArchBuildSettingName</key>
+		<string>Intel</string>
+		<key>SortNumber</key>
+		<string>105</string>
+		<key>Type</key>
+		<string>Architecture</string>
+	</dict>
+	<dict>
+		<key>ByteOrder</key>
+		<string>little</string>
+		<key>Identifier</key>
+		<string>x86_64</string>
+		<key>PerArchBuildSettingName</key>
+		<string>Intel 64-bit</string>
+		<key>SortNumber</key>
+		<string>106</string>
+		<key>Type</key>
+		<string>Architecture</string>
+	</dict>
+	<dict>
+		<key>ArchitectureSetting</key>
+		<string>ARCHS_STANDARD_32_BIT</string>
+		<key>Identifier</key>
+		<string>Standard32_bit</string>
+		<key>RealArchitectures</key>
+		<array>
+			<string>i386</string>
+		</array>
+		<key>Type</key>
+		<string>Architecture</string>
+	</dict>
+	<dict>
+		<key>ArchitectureSetting</key>
+		<string>ARCHS_STANDARD_64_BIT</string>
+		<key>Identifier</key>
+		<string>Universal64bit</string>
+		<key>RealArchitectures</key>
+		<array>
+			<string>x86_64</string>
+		</array>
+		<key>Type</key>
+		<string>Architecture</string>
+	</dict>
+	<dict>
+		<key>ArchitectureSetting</key>
+		<string>ARCHS_STANDARD_32_64_BIT</string>
+		<key>Identifier</key>
+		<string>Platform32_64_bit</string>
+		<key>RealArchitectures</key>
+		<array>
+			<string>i386</string>
+			<string>x86_64</string>
+		</array>
+		<key>Type</key>
+		<string>Architecture</string>
+	</dict>
+</array>
+</plist>

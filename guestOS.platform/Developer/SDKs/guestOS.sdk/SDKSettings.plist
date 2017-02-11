@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CanonicalName</key>
+	<string>guestos.${OSID}</string>
+	<key>CustomProperties</key>
+	<dict>
+		<key>DEBUG_INFORMATION_FORMAT</key>
+		<string>dwarf</string>
+	</dict>
+	<key>DefaultDeploymentTarget</key>
+	<string>1.0</string>
+	<key>DefaultProperties</key>
+	<dict>
+		<key>EFFECTIVE_PLATFORM_NAME</key>
+		<string>${EFFECTIVE_PLATFORM_NAME}</string>
+		<key>TARGET_FLAGS</key>
+		<string>${TARGET_FLAGS}</string>
+		<key>TARGET_CFLAGS</key>
+		<string>${TARGET_CFLAGS}</string>
+		<key>TARGET_LDFLAGS</key>
+		<string>${TARGET_LDFLAGS}</string>
+		<key>TARGET_ISYSTEM</key>
+		<string>${TARGET_ISYSTEM}</string>
+		<key>TARGET_SYSLIB</key>
+		<string>${TARGET_SYSLIB}</string>
+		<key>TARGET_RPATH_LINK</key>
+		<string>${TARGET_RPATH_LINK}</string>
+		<key>CODE_SIGNING_ALLOWED</key>
+		<string>NO</string>
+		<key>DEAD_CODE_STRIPPING</key>
+		<string>NO</string>
+		<key>DEFAULT_COMPILER</key>
+		<string>com.apple.compilers.llvm.clang.1_0</string>
+		<key>DEPLOYMENT_TARGET_SUGGESTED_VALUES</key>
+		<array>
+			<string>1.0</string>
+		</array>
+		<key>GCC_THUMB_SUPPORT</key>
+		<string>YES</string>
+		<key>GUESTOS_DEPLOYMENT_TARGET</key>
+		<string>10.10</string>
+		<key>OTHER_CFLAGS</key>
+		<string>$(TARGET_FLAGS) $(TARGET_CFLAGS) $(TARGET_ISYSTEM)</string>
+		<key>OTHER_LDFLAGS</key>
+		<string>$(TARGET_FLAGS) -B$(PLATFORM_DEVELOPER_BIN_DIR) --sysroot $(SDK_DIR) $(TARGET_LDFLAGS) $(TARGET_RPATH_LINK)</string>
+		<key>LIBRARY_SEARCH_PATHS</key>
+		<string>$(TARGET_SYSLIB)</string>
+		<key>PLATFORM_NAME</key>
+		<string>guestos.${OSID}</string>
+		<key>SUPPORTED_DEVICE_FAMILIES</key>
+		<string>1,2</string>
+	</dict>
+	<key>DisplayName</key>
+	<string>${OSDESC}</string>
+	<key>IsBaseSDK</key>
+	<string>YES</string>
+	<key>MaximumDeploymentTarget</key>
+	<string>10.12.99</string>
+	<key>MinimalDisplayName</key>
+	<string>1.0</string>
+	<key>PropertyConditionFallbackNames</key>
+	<array>
+		<string>guestos</string>
+	</array>
+	<key>Version</key>
+	<string>1.0</string>
+</dict>
+</plist>

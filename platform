@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
+from guestOS import build
+from guestOS import common
+from guestOS import generate
+from guestOS import inject
+from guestOS import make
+from os import path
+
+import argparse
+
+
+# Note: Linux icon by http://tatice.deviantart.com
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(title='Commands')
+
+    inject.register_command(subparsers)
+    if path.isdir(common.bundle.bundle_path('guestOS.platform')):
+        make.register_command(subparsers)
+        generate.register_command(subparsers)
+        build.register_command(subparsers)
+
+    args = parser.parse_args()
+    args.main(args)
