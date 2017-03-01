@@ -100,9 +100,9 @@ def build_binutils(platforms, force=False):
 
         interm_dir = bundle.intermediates_path()
         source_dir = unarchive_file(filepath, path.join(interm_dir, 'Sources'))
-        patch_file = bundle.resource_path('Patches', 'binutils-%s.patch' % version)
-        with open(patch_file) as patch:
-            invoke_command(['patch', '-p1'], stdin=patch, cwd=source_dir)
+        # patch_file = bundle.resource_path('Patches', 'binutils-%s.patch' % version)
+        # with open(patch_file) as patch:
+        #     invoke_command(['patch', '-p1'], stdin=patch, cwd=source_dir)
 
         build_dir = path.join(interm_dir, 'DerivedData', path.basename(source_dir))
         cleanup_dir(build_dir)

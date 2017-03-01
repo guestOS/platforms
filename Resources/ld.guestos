@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import print_function
+from os import path
+
+import sys
+import subprocess
+
+
+def error(message):
+    print(sys.argv[0] + ': ' + message)
+    sys.exit(1)
+
+
+def find_framework(framework, search_paths):
+    result = []
+    for search_path in search_paths:
+        framework_path = path.join(search_path, '%s.framework' % framework)
+        if path.isdir(framework_path):
+            result.append(framework_path)
+    return result
+
+
+def process_framework_args(args):
+    search_paths = [arg[2:] for arg in args if arg.startswith('-L')]
+
+    result, index = [], 0
+    while index < len(args):
+        arg = args[index]
+        if arg == '-framework':
+            framework = args[index + 1]
+            framework_paths = find_framework(framework, search_paths)
+            if not framework_paths:
+                error('framework not found ' + framework)
+            result.extend(['-L' + framework_path for framework_path in framework_paths])
+            result.append('-l' + framework)
+            index += 2
+        else:
+            result.append(arg)
+            index += 1
+
+    return result
+
+
+def process_filelist_args(args):
+    result, index = [], 0
+    while index < len(args):
+        arg = args[index]
+        if arg == '-filelist':
+            filelist = args[index + 1]
+            with open(filelist, 'r') as f:
+                list = f.read().strip().split('\n')
+            result.extend(list)
+            index += 2
+        else:
+            result.append(arg)
+            index += 1
+    return result
+
+
+def print_invocation(ld_path, args):
+    if ('-v' in args) or ('--verbose' in args):
+        print('guestOS ld wrapper (version 1.0)')
+        print('InstalledDir: ' + path.dirname(__file__))
+        print(' "%s" %s' % (ld_path, ' '.join(args)))
+
+
+def main():
+    args = sys.argv[1:]
+    args = process_framework_args(args)
+    args = process_filelist_args(args)
+
+    ld_path = path.join(path.dirname(__file__), 'ld')
+    print_invocation(ld_path, args)
+    proc = subprocess.Popen([ld_path] + args)
+    proc.communicate()
+    if proc.returncode == 0:
+        pass
+    else:
+        sys.exit(proc.returncode)
+
+
+if __name__ == '__main__':
+    main()

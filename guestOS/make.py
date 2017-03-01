@@ -67,6 +67,12 @@ def make(force_build=False, force_sdk_gen=False):
     platforms = config.platforms
     build_binutils(platforms, force=force_build)
     derived_data = bundle.cache_path('DerivedData')
+    # copy Vagrantfile
+    vms_dir = path.join(derived_data, 'guestOS', 'VirtualMachines')
+    with Command(ok_blue('Copying Vagrantfile to: ') + vms_dir):
+        bundle.ensure_dir(vms_dir)
+        shutil.copy(bundle.resource_path('Vagrantfile'), path.join(vms_dir, 'Vagrantfile'))
+
     directories = []
     for platform in platforms:
         platform_dir = generate_platform(platform, derived_data, build_number, source_revision)
@@ -77,10 +83,9 @@ def make(force_build=False, force_sdk_gen=False):
         tools_dst_rel = path.relpath(tools_dst, path.dirname(platform_dir))
         with Command(ok_blue('Copying ') + tools_src + ok_blue(' to ') + tools_dst_rel):
             shutil.copytree(tools_src, tools_dst)
-        # copy Vagrantfile
-        vms_dir = path.join(derived_data, 'guestOS', 'VirtualMachines')
-        invoke_command(['mkdir', '-p', vms_dir])
-        invoke_command(['cp', bundle.resource_path('Vagrantfile'), path.join(vms_dir, '')])
+        # copy ld.guestos
+        with Command(ok_blue('Copying ld.guestos to: ') + path.join(tools_dst_rel, 'bin')):
+            shutil.copy(bundle.resource_path('ld.guestos'), path.join(tools_dst, 'bin'))
         # copy SDK files
         if platform.sdk:
             raise Exception('Unimplemented')

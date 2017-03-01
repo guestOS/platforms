@@ -44,13 +44,11 @@
 		<key>OTHER_CFLAGS</key>
 		<string>$(TARGET_FLAGS) $(TARGET_CFLAGS) $(TARGET_ISYSTEM)</string>
 		<key>OTHER_LDFLAGS</key>
-		<string>$(TARGET_FLAGS) -B$(PLATFORM_DEVELOPER_BIN_DIR) --sysroot $(SDK_DIR) $(TARGET_LDFLAGS) $(TARGET_RPATH_LINK)</string>
+		<string>$(TARGET_FLAGS) -B$(PLATFORM_DEVELOPER_BIN_DIR) -fuse-ld=guestos --sysroot $(SDK_DIR) $(TARGET_LDFLAGS) $(TARGET_RPATH_LINK)</string>
 		<key>LIBRARY_SEARCH_PATHS</key>
 		<string>$(TARGET_SYSLIB)</string>
 		<key>PLATFORM_NAME</key>
 		<string>guestos.${OSID}</string>
-		<key>SUPPORTED_DEVICE_FAMILIES</key>
-		<string>1,2</string>
 	</dict>
 	<key>DisplayName</key>
 	<string>${OSDESC}</string>
