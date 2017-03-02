@@ -83,9 +83,9 @@ def make(force_build=False, force_sdk_gen=False):
         tools_dst_rel = path.relpath(tools_dst, path.dirname(platform_dir))
         with Command(ok_blue('Copying ') + tools_src + ok_blue(' to ') + tools_dst_rel):
             shutil.copytree(tools_src, tools_dst)
-        # copy ld.guestos
-        with Command(ok_blue('Copying ld.guestos to: ') + path.join(tools_dst_rel, 'bin')):
-            shutil.copy(bundle.resource_path('ld.guestos'), path.join(tools_dst, 'bin'))
+        # copy ld.wrapper
+        with Command(ok_blue('Copying ld.wrapper to: ') + path.join(tools_dst_rel, 'bin')):
+            shutil.copy(bundle.resource_path('ld.wrapper'), path.join(tools_dst, 'bin'))
         # copy SDK files
         if platform.sdk:
             raise Exception('Unimplemented')
