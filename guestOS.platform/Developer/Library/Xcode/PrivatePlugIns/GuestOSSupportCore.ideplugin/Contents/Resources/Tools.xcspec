@@ -88,6 +88,16 @@
 					</dict>
 				</array>
 			</dict>
+			<dict>
+				<key>Name</key>
+				<string>LD_PRODUCT_TYPE</string>
+				<key>Type</key>
+				<string>String</string>
+				<key>DefaultValue</key>
+				<string>$(WRAPPER_EXTENSION)</string>
+				<key>CommandLinePrefixFlag</key>
+				<string>-Wl,--product-type=</string>
+			</dict>
 		</array>
 		<key>Type</key>
 		<string>Linker</string>

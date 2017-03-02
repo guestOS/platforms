@@ -4,8 +4,9 @@
 from __future__ import print_function
 from os import path
 
-import sys
+import argparse
 import subprocess
+import sys
 
 
 class Wrapper():
@@ -13,9 +14,12 @@ class Wrapper():
         self.command = argv[0]
         self.args = argv[1:]
         self.verbose = False
-        self.ld_path = None
+        self.ld_path = path.join(path.dirname(__file__), 'ld')
+        self.emulation = None
+        self.output_file = None
         self.linkFileArgs = []
-        self.uses_frameworks = False
+        self.frameworks_used = []
+        self.search_paths = []
 
     def error(self, message):
         print(self.command + ': ' + message)
@@ -29,54 +33,6 @@ class Wrapper():
                 result.append(framework_path)
         return result
 
-    def process_framework_args(self, args):
-        search_paths = [arg[2:] for arg in args if arg.startswith('-L')]
-
-        result, index = [], 0
-        while index < len(args):
-            arg = args[index]
-            if arg == '-framework':
-                self.uses_frameworks = True
-                framework = args[index + 1]
-                framework_paths = self.find_framework(framework, search_paths)
-                if not framework_paths:
-                    self.error('framework not found ' + framework)
-                result.extend(['-L' + framework_path for framework_path in framework_paths])
-                result.append('-l' + framework)
-                index += 2
-            else:
-                result.append(arg)
-                index += 1
-
-        return result
-
-    def process_filelist_args(self, args):
-        result, index = [], 0
-        while index < len(args):
-            arg = args[index]
-            if arg == '-filelist':
-                filelist = args[index + 1]
-                with open(filelist, 'r') as f:
-                    list = f.read().strip().split('\n')
-                fileargs = path.splitext(filelist)[0] + '.LinkFileArgs'
-                with open(fileargs, 'w+') as f:
-                    f.write(' '.join(["'%s'" % filename for filename in list]))
-                result.append('@' + fileargs)
-                index += 2
-            else:
-                result.append(arg)
-                index += 1
-        return result
-
-    def process_wrapper_args(self, args):
-        self.verbose = ('-v' in args) or ('--verbose' in args)
-        if self.verbose:
-            print('guestOS ld wrapper (version 1.0)')
-            print('InstalledDir: ' + path.dirname(__file__))
-
-        self.ld_path = path.join(path.dirname(__file__), 'ld')
-        return args
-
     def invoke_ld(self, args):
         if self.verbose:
             print(' "%s" %s' % (self.ld_path, ' '.join(args)))
@@ -88,11 +44,72 @@ class Wrapper():
         else:
             sys.exit(proc.returncode)
 
+    def process_args(self, args):
+        self.search_paths = [arg[2:] for arg in args if arg.startswith('-L')]
+
+        result = []
+        it = iter(args)
+        while True:
+            try:
+                arg = it.next()
+                if arg == '-framework':
+                    self.process_framework(arg, it, result)
+                elif arg == '-filelist':
+                    self.process_filelist(arg, it, result)
+                elif arg == '-v' or arg == '--verbose':
+                    self.process_verbose(arg, it, result)
+                else:
+                    result.append(arg)
+            except StopIteration:
+                break
+
+        return result
+
+    def process_framework(self, arg, it, result):
+        framework = it.next()
+        framework_paths = self.find_framework(framework, self.search_paths)
+        if not framework_paths:
+            self.error('framework not found ' + framework)
+        self.frameworks_used.append(framework)
+        result.extend(['-L' + framework_path for framework_path in framework_paths])
+        result.append('-l' + framework)
+
+    def process_filelist(self, arg, it, result):
+        filelist = it.next()
+        with open(filelist, 'r') as f:
+            list = f.read().strip().split('\n')
+        fileargs = path.splitext(filelist)[0] + '.LinkFileArgs'
+        with open(fileargs, 'w+') as f:
+            f.write(' '.join(["'%s'" % filename for filename in list]))
+        result.append('@' + fileargs)
+
+    def process_verbose(self, arg, it, result):
+        self.verbose = True
+        print('guestOS ld wrapper (version 1.0)')
+        print('InstalledDir: ' + path.dirname(__file__))
+
+    def extend_args(self, args, options):
+        result = list(args)
+        if options.product_type == 'framework' and options.m.startswith('elf'):
+            for framework in self.frameworks_used:
+                result.append('-rpath=$ORIGIN/../' + framework + '.framework')
+            result.append('-soname=' + path.basename(options.o))
+        return result
+
     def main(self):
-        args = self.args
-        args = self.process_wrapper_args(args)
-        args = self.process_framework_args(args)
-        args = self.process_filelist_args(args)
+        parser = argparse.ArgumentParser()
+        parser.add_argument('-o')
+        parser.add_argument('-m')
+        options, _ = parser.parse_known_args(self.args)
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--product-type')
+        wrapper_options, args = parser.parse_known_args(self.args)
+
+        options.__dict__.update(wrapper_options.__dict__)
+
+        args = self.process_args(args)
+        args = self.extend_args(args, options)
         self.invoke_ld(args)
 
 
