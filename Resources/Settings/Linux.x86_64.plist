@@ -14,6 +14,8 @@
 	<string>-isystem $(SDK_DIR)/usr/include/ -isystem $(SDK_DIR)/usr/include/x86_64-linux-gnu -isystem $(SDK_DIR)/usr/local/include</string>
 	<key>TARGET_SYSLIB</key>
 	<string>$(SDK_DIR)/lib/ $(SDK_DIR)/lib/x86_64-linux-gnu/ $(SDK_DIR)/usr/lib/ $(SDK_DIR)/usr/lib/x86_64-linux-gnu/ $(SDK_DIR)/usr/local/lib/</string>
+	<key>TARGET_RPATH</key>
+	<string>-Wl,-rpath=/usr/local/lib/</string>
 	<key>TARGET_RPATH_LINK</key>
 	<string>-Wl,-rpath-link -Wl,$(SDK_DIR)/lib/ -Wl,-rpath-link -Wl,$(SDK_DIR)/lib/x86_64-linux-gnu/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/lib/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/lib/x86_64-linux-gnu/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/local/lib/</string>
 	<key>SHARED_OBJECT_LDFLAGS</key>

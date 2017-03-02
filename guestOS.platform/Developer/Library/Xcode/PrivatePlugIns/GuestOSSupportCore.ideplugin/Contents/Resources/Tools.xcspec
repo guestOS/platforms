@@ -123,6 +123,33 @@
 		<string>Compiler</string>
 	</dict>
 	<dict>
+		<key>Options</key>
+		<array>
+			<dict>
+				<key>Name</key>
+				<string>CLANG_LINK_OBJC_RUNTIME</string>
+				<key>Type</key>
+				<string>Boolean</string>
+				<key>DefaultValue</key>
+				<string>YES</string>
+				<key>AdditionalLinkerArgs</key>
+				<dict>
+					<key>YES</key>
+					<array>
+						<string>-lobjc</string>
+					</array>
+					<key>NO</key>
+					<array/>
+				</dict>
+				<key>FileTypes</key>
+				<array>
+					<string>sourcecode.c.objc</string>
+					<string>sourcecode.cpp.objcpp</string>
+				</array>
+				<key>Category</key>
+				<string>LanguageObjC</string>
+			</dict>
+		</array>
 		<key>Architectures</key>
 		<string>$(VALID_ARCHS)</string>
 		<key>BasedOn</key>
