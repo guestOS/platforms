@@ -4,8 +4,13 @@ set -e
 set -u
 cd "`dirname \"$0\"`"
 
+REVISION='d1eb9ad91e45af19d16c3ef9bb742eb9df822c5a'
+
 rm -rf libobjc2
 git clone http://github.com/gnustep/libobjc2
+pushd libobjc2
+git checkout $REVISION
+popd
 
 rm -rf build
 mkdir build
