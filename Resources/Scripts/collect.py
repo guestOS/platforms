@@ -63,9 +63,36 @@ if __name__ == '__main__':
         "/usr/local/lib/libobjc*",
 
         "libfreetype.*",
+        "libz.*",
+        "libpng*",
+
         "libfontconfig.so.1*",
+        "libexpat.*",
+
         "libcairo.so.2*",
+        "libpixman*",
+        "libxcb-shm.*",
+        "libxcb-render.*",
+        "libxcb.*",
+        "libXrender.*",
+        "libXext.*",
+        "libXau.*",
+        "libXdmcp.*",
+
         "libGL.so*",
+        "libxcb-dri3.*",
+        "libxcb-present.*",
+        "libxcb-sync.*",
+        "libxshmfence.*",
+        "libglapi.*",
+        "libXdamage.*",
+        "libXfixes.*",
+        "libX11-xcb.*",
+        "libxcb-glx.*",
+        "libxcb-dri2.*",
+        "libXxf86vm.*",
+        "libdrm.*",
+
         "libX11.so*",
 
         "libcrypto.so.1*",

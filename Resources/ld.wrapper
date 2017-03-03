@@ -5,6 +5,8 @@ from __future__ import print_function
 from os import path
 
 import argparse
+import os
+import re
 import subprocess
 import sys
 
@@ -14,6 +16,7 @@ class Wrapper():
         self.command = argv[0]
         self.args = argv[1:]
         self.ld_path = path.join(path.dirname(__file__), 'ld')
+        self.readelf_path = path.join(path.dirname(__file__), 'readelf')
         self.emulation = None
         self.output_file = None
         self.linkFileArgs = []
@@ -37,6 +40,37 @@ class Wrapper():
             if isdir:
                 result.append(framework_path)
             self.message('attempt to open ' + framework_path + (' succeeded' if isdir else ' failed'))
+        return result
+
+    def readelf(self, filepath):
+        proc = subprocess.Popen([self.readelf_path, '-d', filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, _ = proc.communicate()
+        if proc.returncode != 0:
+            return ([], [])
+        libs = re.findall(r'\(NEEDED\)[\w\s:]+\[([^\]]+)\]', output)
+        rpaths = re.findall(r'\(RPATH\)[\w\s:]+\[([^\]]+)\]', output)
+        rpaths = rpaths[0].split(':') if rpaths else []
+        return libs, rpaths
+
+    def load_rpaths(self, filepath):
+        libs, rpaths = self.readelf(filepath)
+        result = {}
+        for rpath in rpaths:
+            if rpath.startswith('$ORIGIN') and rpath.endswith('.framework'):
+                framework = path.splitext(path.basename(rpath))[0]
+                matches = [lib for lib in libs if framework in lib]
+                if matches:
+                    real_path = path.realpath(rpath.replace('$ORIGIN', path.dirname(filepath)))
+                    result[framework] = real_path
+        return result
+
+    def get_framework_rpaths(self, framework, framework_paths):
+        result = {}
+        for framework_path in framework_paths:
+            filenames = os.listdir(framework_path)
+            filenames = [filename for filename in filenames if framework in filename]
+            for filename in filenames:
+                result.update(self.load_rpaths(path.join(framework_path, filename)))
         return result
 
     def invoke_ld(self, args):
@@ -73,9 +107,18 @@ class Wrapper():
         framework_paths = self.find_framework(framework, self.search_paths)
         if not framework_paths:
             self.error('framework not found ' + framework)
+        self.add_framework(framework, framework_paths, result)
+
+    def add_framework(self, framework, framework_paths, result):
         self.frameworks_used.append(framework)
         result.extend(['-L' + framework_path for framework_path in framework_paths])
         result.append('-l' + framework)
+        rpaths = self.get_framework_rpaths(framework, framework_paths)
+        # Emulate framework re-export
+        # Note: also prevents 'error adding symbols: DSO missing from command line' for frameworks,
+        # but --copy-dt-needed-entries is preferred (as it will include all libraries)
+        for framework, rpath in rpaths.items():
+            self.add_framework(framework, [rpath], result)
 
     def process_filelist(self, arg, it, result):
         filelist = it.next()

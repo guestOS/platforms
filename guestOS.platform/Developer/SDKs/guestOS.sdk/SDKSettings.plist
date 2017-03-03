@@ -48,7 +48,9 @@
 		<key>OTHER_LDFLAGS</key>
 		<string>$(TARGET_FLAGS) -B$(PLATFORM_DEVELOPER_BIN_DIR) -fuse-ld=wrapper --sysroot $(SDK_DIR) $(TARGET_LDFLAGS) $(TARGET_RPATH) $(TARGET_RPATH_LINK)</string>
 		<key>LIBRARY_SEARCH_PATHS</key>
-		<string>$(TARGET_SYSLIB)</string>
+		<string>$(TARGET_SYSLIB) $(SDK_DIR)/Library/Frameworks/</string>
+		<key>FRAMEWORK_SEARCH_PATHS</key>
+		<string>$(SDK_DIR)/Library/Frameworks/</string>
 		<key>PLATFORM_NAME</key>
 		<string>guestos.${OSID}</string>
 	</dict>

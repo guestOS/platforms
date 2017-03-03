@@ -9,7 +9,7 @@
 	<key>TARGET_CFLAGS</key>
 	<string>-fno-implicit-module-maps -fPIC -fobjc-nonfragile-abi -fobjc-runtime=gnustep-1.8 -D_GNU_SOURCE -D__LITTLE_ENDIAN__ -DGCC_RUNTIME_3</string>
 	<key>TARGET_LDFLAGS</key>
-	<string>-Wl,-Bdynamic -Wl,--as-needed -Wl,-lgcc_s</string>
+	<string>-Wl,--copy-dt-needed-entries -Wl,-Bdynamic -Wl,--as-needed -Wl,-lgcc_s</string>
 	<key>TARGET_ISYSTEM</key>
 	<string>-isystem $(SDK_DIR)/usr/include/ -isystem $(SDK_DIR)/usr/include/x86_64-linux-gnu -isystem $(SDK_DIR)/usr/local/include</string>
 	<key>TARGET_SYSLIB</key>
@@ -17,7 +17,7 @@
 	<key>TARGET_RPATH</key>
 	<string>-Wl,-rpath=/usr/local/lib/</string>
 	<key>TARGET_RPATH_LINK</key>
-	<string>-Wl,-rpath-link -Wl,$(SDK_DIR)/lib/ -Wl,-rpath-link -Wl,$(SDK_DIR)/lib/x86_64-linux-gnu/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/lib/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/lib/x86_64-linux-gnu/ -Wl,-rpath-link -Wl,$(SDK_DIR)/usr/local/lib/</string>
+	<string>-Wl,-rpath-link=$(SDK_DIR)/lib/ -Wl,-rpath-link=$(SDK_DIR)/lib/x86_64-linux-gnu/ -Wl,-rpath-link=$(SDK_DIR)/usr/lib/ -Wl,-rpath-link=$(SDK_DIR)/usr/lib/x86_64-linux-gnu/ -Wl,-rpath-link=$(SDK_DIR)/usr/lib/x86_64-linux-gnu/mesa/ -Wl,-rpath-link=$(SDK_DIR)/usr/local/lib/</string>
 	<key>SHARED_OBJECT_LDFLAGS</key>
 	<string>-Wl,-Bshareable -Wl,--no-omagic -Wl,--no-undefined</string>
 	<key>SHARED_OBJECT_EXECUTABLE_PREFIX</key>
