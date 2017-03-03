@@ -13,29 +13,34 @@ class Wrapper():
     def __init__(self, argv):
         self.command = argv[0]
         self.args = argv[1:]
-        self.verbose = False
         self.ld_path = path.join(path.dirname(__file__), 'ld')
         self.emulation = None
         self.output_file = None
         self.linkFileArgs = []
         self.frameworks_used = []
         self.search_paths = []
+        self.options = {}
 
     def error(self, message):
         print(self.command + ': ' + message)
         sys.exit(1)
 
+    def message(self, message):
+        if self.options.verbose:
+            print(message)
+
     def find_framework(self, framework, search_paths):
         result = []
         for search_path in search_paths:
             framework_path = path.join(search_path, '%s.framework' % framework)
-            if path.isdir(framework_path):
+            isdir = path.isdir(framework_path)
+            if isdir:
                 result.append(framework_path)
+            self.message('attempt to open ' + framework_path + (' succeeded' if isdir else ' failed'))
         return result
 
     def invoke_ld(self, args):
-        if self.verbose:
-            print(' "%s" %s' % (self.ld_path, ' '.join(args)))
+        self.message(' "%s" %s' % (self.ld_path, ' '.join(args)))
 
         proc = subprocess.Popen([self.ld_path] + args)
         proc.communicate()
@@ -56,8 +61,6 @@ class Wrapper():
                     self.process_framework(arg, it, result)
                 elif arg == '-filelist':
                     self.process_filelist(arg, it, result)
-                elif arg == '-v' or arg == '--verbose':
-                    self.process_verbose(arg, it, result)
                 else:
                     result.append(arg)
             except StopIteration:
@@ -83,23 +86,20 @@ class Wrapper():
             f.write(' '.join(["'%s'" % filename for filename in list]))
         result.append('@' + fileargs)
 
-    def process_verbose(self, arg, it, result):
-        self.verbose = True
-        print('guestOS ld wrapper (version 1.0)')
-        print('InstalledDir: ' + path.dirname(__file__))
-
-    def extend_args(self, args, options):
+    def extend_args(self, args):
         result = list(args)
-        if options.product_type == 'framework' and options.m.startswith('elf'):
+        if self.options.product_type == 'framework' and self.options.m.startswith('elf'):
             for framework in self.frameworks_used:
                 result.append('-rpath=$ORIGIN/../' + framework + '.framework')
-            result.append('-soname=' + path.basename(options.o))
+            result.append('-soname=' + path.basename(self.options.o))
         return result
 
     def main(self):
         parser = argparse.ArgumentParser()
         parser.add_argument('-o')
         parser.add_argument('-m')
+        parser.add_argument('-v', action='store_true', dest='verbose')
+        parser.add_argument('--verbose', action='store_true')
         options, _ = parser.parse_known_args(self.args)
 
         parser = argparse.ArgumentParser()
@@ -107,9 +107,13 @@ class Wrapper():
         wrapper_options, args = parser.parse_known_args(self.args)
 
         options.__dict__.update(wrapper_options.__dict__)
+        self.options = options
+
+        self.message('guestOS ld wrapper (version 1.0)')
+        self.message('InstalledDir: ' + path.dirname(__file__))
 
         args = self.process_args(args)
-        args = self.extend_args(args, options)
+        args = self.extend_args(args)
         self.invoke_ld(args)
 
 
