@@ -7,11 +7,59 @@ from os import path
 import argparse
 import os
 import re
+import shutil
 import subprocess
 import sys
 
 
-class Wrapper():
+class ObjectFile(object):
+    def __init__(self, name, filepath):
+        self.name = name
+        self.path = filepath
+        self.frameworks = []
+        self.libraries = []
+
+    @property
+    def path(self):
+        return getattr(self, '_filepath')
+
+    @path.setter
+    def path(self, filepath):
+        filepath = path.realpath(filepath) if filepath else None
+        setattr(self, '_filepath', filepath)
+
+    @property
+    def dependencies(self):
+        return self.frameworks + self.libraries
+
+    @property
+    def all_frameworks(self):
+        frameworks = list(self.frameworks)
+        result = {}
+        for framework in frameworks:
+            assert (not framework.name in result) or (result[framework.name] == framework.path), """
+            Different localtions for framework: %s
+            and: %s""" % (result[framework.name], framework.path)
+
+            result[framework.name] = framework.path
+            frameworks.extend(framework.frameworks)
+        return result
+
+    def add_framework(self, dependency):
+        self.frameworks.append(dependency)
+
+    def add_frameworks(self, dictionary):
+        for name, path in dictionary.items():
+            self.add_framework(ObjectFile(name, path))
+
+    def __repr__(self):
+        dependencies = ',\n'.join([dependency.__repr__() for dependency in self.dependencies])
+        dependencies = '\n'.join(['\t' + line for line in dependencies.split('\n')] if dependencies else [])
+        dependencies += '\n' if dependencies else ''
+        return '{%s => %s (\n%s)}' % (self.name, self.path, dependencies)
+
+
+class Wrapper(object):
     def __init__(self, argv):
         self.command = argv[0]
         self.args = argv[1:]
@@ -20,9 +68,17 @@ class Wrapper():
         self.emulation = None
         self.output_file = None
         self.linkFileArgs = []
-        self.frameworks_used = []
+        self.object = None
         self.search_paths = []
         self.options = {}
+
+    def initialize(self, options):
+        self.options = options
+        if self.options.product_type:
+            name = path.splitext(path.basename(path.dirname(self.options.output)))[0]
+        else:
+            name = self.options.output
+        self.object = ObjectFile(name, self.options.output)
 
     def error(self, message):
         print(self.command + ': ' + message)
@@ -46,14 +102,17 @@ class Wrapper():
         proc = subprocess.Popen([self.readelf_path, '-d', filepath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, _ = proc.communicate()
         if proc.returncode != 0:
-            return ([], [])
+            return None
         libs = re.findall(r'\(NEEDED\)[\w\s:]+\[([^\]]+)\]', output)
         rpaths = re.findall(r'\(RPATH\)[\w\s:]+\[([^\]]+)\]', output)
         rpaths = rpaths[0].split(':') if rpaths else []
         return libs, rpaths
 
     def load_rpaths(self, filepath):
-        libs, rpaths = self.readelf(filepath)
+        info = self.readelf(filepath)
+        if not info:
+            return None
+        libs, rpaths = info
         result = {}
         for rpath in rpaths:
             if rpath.startswith('$ORIGIN') and rpath.endswith('.framework'):
@@ -65,13 +124,18 @@ class Wrapper():
         return result
 
     def get_framework_rpaths(self, framework, framework_paths):
-        result = {}
+        filter = framework.name + '.'
         for framework_path in framework_paths:
             filenames = os.listdir(framework_path)
-            filenames = [filename for filename in filenames if framework in filename]
+            filenames = [filename for filename in filenames if filter in filename]
             for filename in filenames:
-                result.update(self.load_rpaths(path.join(framework_path, filename)))
-        return result
+                full_path = path.join(framework_path, filename)
+                rpaths = self.load_rpaths(full_path)
+                if rpaths is not None:
+                    framework.path = full_path
+                    framework.add_frameworks(rpaths)
+                    return True
+        return False
 
     def invoke_ld(self, args):
         self.message(' "%s" %s' % (self.ld_path, ' '.join(args)))
@@ -107,18 +171,20 @@ class Wrapper():
         framework_paths = self.find_framework(framework, self.search_paths)
         if not framework_paths:
             self.error('framework not found ' + framework)
+        framework = ObjectFile(framework, None)
         self.add_framework(framework, framework_paths, result)
+        self.object.add_framework(framework)
 
     def add_framework(self, framework, framework_paths, result):
-        self.frameworks_used.append(framework)
         result.extend(['-L' + framework_path for framework_path in framework_paths])
-        result.append('-l' + framework)
-        rpaths = self.get_framework_rpaths(framework, framework_paths)
+        result.append('-l' + framework.name)
+
+        self.get_framework_rpaths(framework, framework_paths)
         # Emulate framework re-export
         # Note: also prevents 'error adding symbols: DSO missing from command line' for frameworks,
         # but --copy-dt-needed-entries is preferred (as it will include all libraries)
-        for framework, rpath in rpaths.items():
-            self.add_framework(framework, [rpath], result)
+        for dependency in framework.frameworks:
+            self.add_framework(dependency, [dependency.path], result)
 
     def process_filelist(self, arg, it, result):
         filelist = it.next()
@@ -129,18 +195,48 @@ class Wrapper():
             f.write(' '.join(["'%s'" % filename for filename in list]))
         result.append('@' + fileargs)
 
+    def needs_embedding(self):
+        return self.options.product_type in ['app', 'tool']
+
     def extend_args(self, args):
         result = list(args)
-        if self.options.product_type == 'framework' and self.options.m.startswith('elf'):
-            for framework in self.frameworks_used:
-                result.append('-rpath=$ORIGIN/../' + framework + '.framework')
-            result.append('-soname=' + path.basename(self.options.o))
+        if self.options.emulation.startswith('elf'):
+            if self.options.product_type == 'framework':
+                for framework_name, framework_path in self.object.all_frameworks.items():
+                    result.append('-rpath=$ORIGIN/../%s.framework' % framework_name)
+                result.append('-soname=' + path.basename(self.options.output))
+            if self.needs_embedding():
+                for framework_name, framework_path in self.object.all_frameworks.items():
+                    result.append('-rpath=$ORIGIN/Frameworks/%s.framework' % framework_name)
         return result
+
+    def touch_product(self):
+        output = self.options.output
+        if self.options.product_type == 'framework' and path.exists(output):
+            link_path = path.join(path.dirname(output), self.object.name)
+            if not path.exists(link_path):
+                os.symlink(path.basename(output), link_path)
+
+    def embed_frameworks(self):
+        if not self.needs_embedding():
+            return
+        bundle_dir = path.dirname(self.object.path)
+        frameworks_dir = path.join(bundle_dir, 'Frameworks')
+        if not path.exists(frameworks_dir):
+            os.makedirs(frameworks_dir)
+        for framework_name, framework_path in self.object.all_frameworks.items():
+            framework_path = path.dirname(framework_path)
+            self.message('Embedding framework %s from %s' % (framework_name, framework_path))
+            embedded_path = path.join(frameworks_dir, path.basename(framework_path))
+            if path.exists(embedded_path):
+                shutil.rmtree(embedded_path)
+            shutil.copytree(framework_path, embedded_path, symlinks=True)
 
     def main(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-o')
-        parser.add_argument('-m')
+        parser.add_argument('-o', dest='output')
+        parser.add_argument('--output')
+        parser.add_argument('-m', dest='emulation')
         parser.add_argument('-v', action='store_true', dest='verbose')
         parser.add_argument('--verbose', action='store_true')
         options, _ = parser.parse_known_args(self.args)
@@ -150,14 +246,18 @@ class Wrapper():
         wrapper_options, args = parser.parse_known_args(self.args)
 
         options.__dict__.update(wrapper_options.__dict__)
-        self.options = options
+        self.initialize(options)
 
         self.message('guestOS ld wrapper (version 1.0)')
         self.message('InstalledDir: ' + path.dirname(__file__))
 
         args = self.process_args(args)
         args = self.extend_args(args)
+        self.message('Dependency graph:')
+        self.message(self.object)
         self.invoke_ld(args)
+        self.touch_product()
+        self.embed_frameworks()
 
 
 def main():
